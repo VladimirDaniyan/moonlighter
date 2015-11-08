@@ -1,4 +1,4 @@
-#!flask/bin/python
+#!venv/bin/python
 from flask import Flask, render_template
 from subprocess import Popen, PIPE
 from flask.ext.script import Manager, Server
@@ -14,14 +14,14 @@ def index():
 
 @app.route('/launch')
 def moonlight():
-    cmd = ['moonlight', 'stream', '-app', 'Steam', '-mapping', 'xbox.conf', '-1080', '-30fps']
-    #cmd = ["ls", "-l"]
+    cmd = ['moonlight', 'stream', '-app', 'Steam', '-mapping', '/home/pi/xbox.conf', '-1080', '-30fps']
     p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    output, err = p.communicate()
+    err = p.communicate()
     if p.returncode != 0:
         print ("moonlight failed %d %s" % (p.returncode, err))
     else:
-        return output
+        return None
+    return 'Steam started'
 
 if __name__ == '__main__':
     manager.run()
