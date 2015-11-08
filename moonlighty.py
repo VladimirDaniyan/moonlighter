@@ -1,12 +1,35 @@
 #!venv/bin/python
 from flask import Flask, render_template
 from subprocess import Popen, PIPE
-from flask.ext.script import Manager, Server
+from flask.ext.script import Manager, Server, Command, Option
+
+# http://stackoverflow.com/questions/14566570/how-to-use-flask-script-and-gunicorn
+class GunicornServer(Command):
+    """Run the app within Gunicorn"""
+
+    def get_options(self):
+        from gunicorn.config import make_settings
+
+        settings = make_settings()
+        options = (
+            Option(*klass.cli, action=klass.action)
+            for setting, klass in settings.iteritems() if klass.cli
+        )
+        return options
+
+    def run(self, *args, **kwargs):
+        from gunicorn.app.wsgiapp import WSGIApplication
+
+        app = WSGIApplication()
+        app.app_uri = 'moonlighty:app'
+        return app.run()
+
 
 app = Flask(__name__)
 
 manager = Manager(app)
 manager.add_command("runserver", Server(host='0.0.0.0'))
+manager.add_command("gunicorn", GunicornServer())
 
 @app.route('/')
 def index():
@@ -16,12 +39,8 @@ def index():
 def moonlight():
     cmd = ['moonlight', 'stream', '-app', 'Steam', '-mapping', '/home/pi/xbox.conf', '-1080', '-30fps']
     p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    err = p.communicate()
-    if p.returncode != 0:
-        print ("moonlight failed %d %s" % (p.returncode, err))
-    else:
-        return None
-    return 'Steam started'
+    output = p.communicate()
+    return output
 
 if __name__ == '__main__':
     manager.run()
