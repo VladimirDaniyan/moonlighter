@@ -37,8 +37,9 @@ def index():
 
 @app.route('/launch')
 def moonlight():
+    logfile = open('/var/log/moonlighty/moonlight.log', 'w')
     cmd = ['sudo', '-u', 'pi', 'moonlight', 'stream', '-app', 'Steam', '-mapping', '/home/pi/xbox.conf', '-1080', '-30fps']
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, stdout=logfile, stderr=logfile)
     output = p.communicate()
     return output
 
