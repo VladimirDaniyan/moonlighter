@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html>
+<body>
+    {% for game in game_list %}
+        <p><a href="{{ url_for('launch_game', game_title=game) }}">{{ game }}</a></p>
+    {% endfor %}
+</body>
+</html>
