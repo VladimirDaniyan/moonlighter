@@ -1,7 +1,8 @@
 #!venv/bin/python
 from flask import Flask, render_template, Response, url_for
 from flask.ext.script import Manager, Server, Command, Option
-from subprocess import Popen, PIPE, CalledProcessError
+from subprocess import Popen, PIPE, STDOUT
+from jinja2 import Environment, FileSystemLoader
 import re
 import time
 import sys
@@ -71,17 +72,17 @@ def games():
 
 @app.route('/launch/<game_title>')
 def launch_game(game_title):
-    """Start streaming a game returned from :func:`games`"""
-    logfile = open('/var/log/moonlighty/moonlight.log', 'w')
-    launch_game = Popen(['sudo', '-u', 'pi', 'moonlight', 'stream', '-app',
-        game_title, '-mapping', '/home/pi/xbox.conf', '-1080', '-30fps'], stdout=logfile, stderr=PIPE)
-    output, error = launch_game.communicate()
+    """Start streaming a game from the list returned by :func:`games`"""
+    def _moonlight_stream(game_title):
+        launch_game = Popen(['sudo', '-u', 'pi', 'moonlighty', 'stream', '-app',
+            game_title, '-mapping', '/home/pi/xbox.conf', '-1080', '-30fps'], stdout=PIPE, stderr=STDOUT)
 
-    if error is None:
-        return Response(("Launched: " + game_title), mimetype='text/html')
-    else:
-        return Response(("Something went wrong: rc=%d %s" %
-            (launch_game.returncode, error)), mimetype='text/html')
+        for line in iter(launch_game.stdout.readline, b''):
+            yield line.rstrip() + '<br/>\n'
+
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template('launched_game.html')
+    return Response(template.generate(output=_moonlight_stream(game_title)))
 
 
 if __name__ == '__main__':
