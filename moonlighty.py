@@ -1,7 +1,7 @@
 #!venv/bin/python
-from flask import Flask, render_template, Response, jsonify
+from flask import Flask, render_template, Response, url_for
 from flask.ext.script import Manager, Server, Command, Option
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, CalledProcessError
 import re
 import time
 import sys
@@ -34,40 +34,55 @@ manager = Manager(app)
 manager.add_command("runserver", Server(host='0.0.0.0'))
 manager.add_command("gunicorn", GunicornServer())
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/list')
-def game_list():
+@app.route('/games')
+def games():
+    def _moonlight_games():
+        """Returns the list of game titles from the moonlight list action
 
-    def moonlight_games():
-        #logfile = open('/var/log/moonlighty/moonlight.log', 'w')
-        #cmd = ['sudo', '-u', 'pi', 'moonlight', 'stream', '-app', 'Steam', '-mapping', '/home/pi/xbox.conf', '-1080', '-30fps']
+        The game list is auto-detected by Nvidia's GeForce Experience app
+        Games can manually be added from Preferences -> SHIELD -> Games
+        """
         moon_list = Popen(['sudo', '-u', 'pi', 'moonlight', 'list'], stdout=PIPE)
+        # remove the non-game titles from the output
         moon_list_sorted = Popen(['sed', '1,4d'], stdin=moon_list.stdout, stdout=PIPE)
         moon_list.stdout.close()
         while moon_list_sorted.poll() is None:
             time.sleep(2)
         output, error = moon_list_sorted.communicate()
 
-        # moonlight returns a numbered list of games, we want to parse that
-        pattern = '(?<=\d\.\s).*$'
-        steam_games = []
         if error is None:
+            # moonlight returns a numbered list of game titles
+            # parse that to create python list
+            pattern = '(?<=\d\.\s).*$'
+            steam_games = []
             for game in output.splitlines():
                 for match in re.findall(pattern, game):
                     steam_games.append(match)
             return steam_games
         else:
-            raise IOError(error)
+            return Response(error, mimetype='text/html')
 
-    return Response(moonlight_games(), mimetype='text/html')
+    return render_template('games.html', game_list=_moonlight_games())
 
-#TODO: create dynamic routes based on game list
-# allowing games to be started directly
-@app.route('/list/<game>')
-def start_game():
+@app.route('/launch/<game_title>')
+def launch_game(game_title):
+    """Start streaming a game returned from :func:`games`"""
+    logfile = open('/var/log/moonlighty/moonlight.log', 'w')
+    launch_game = Popen(['sudo', '-u', 'pi', 'moonlight', 'stream', '-app',
+        game_title, '-mapping', '/home/pi/xbox.conf', '-1080', '-30fps'], stdout=logfile, stderr=PIPE)
+    output, error = launch_game.communicate()
+
+    if error is None:
+        return Response(("Launched: " + game_title), mimetype='text/html')
+    else:
+        return Response(("Something went wrong: rc=%d %s" %
+            (launch_game.returncode, error)), mimetype='text/html')
+
 
 if __name__ == '__main__':
     manager.run()
