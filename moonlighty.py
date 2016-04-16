@@ -7,6 +7,7 @@ import re
 import time
 import sys
 
+
 # http://stackoverflow.com/questions/14566570/how-to-use-flask-script-and-gunicorn
 class GunicornServer(Command):
     """Run the app within Gunicorn"""
@@ -70,6 +71,13 @@ def games():
 
     return render_template('games.html', game_list=_moonlight_games())
 
+
+def stream_output(action):
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template('output_stream.html')
+    return Response(template.generate(output=action))
+
+
 @app.route('/launch/<game_title>')
 def launch_game(game_title):
     """Start streaming a game from the list returned by :func:`games`"""
@@ -80,9 +88,19 @@ def launch_game(game_title):
         for line in iter(launch_game.stdout.readline, b''):
             yield line.rstrip() + '<br/>\n'
 
-    env = Environment(loader=FileSystemLoader('templates'))
-    template = env.get_template('launched_game.html')
-    return Response(template.generate(output=_moonlight_stream(game_title)))
+    stream_output(_moonlight_stream(game_title))
+
+
+@app.route('/quit')
+def end_stream():
+    """Stops the game stream"""
+    def _quit_moonlight():
+        quit_stream = Popen(['sudo', '-u', 'pi', 'moonlight', 'quit'])
+
+        for line in iter(quit_stream.stdout.readline, b''):
+            yield line.rstrip() + '<br/>\n'
+
+    stream_output(_quit_moonlight())
 
 
 if __name__ == '__main__':
