@@ -75,7 +75,7 @@ def launch_game(game_title):
     """Start streaming a game from the list returned by :func:`games`"""
     def _moonlight_stream(game_title):
         launch_game = Popen(['sudo', '-u', 'pi', 'moonlight', 'stream', '-app',
-            game_title, '-mapping', '/home/pi/xbox.conf', '-1080', '-30fps'], stdout=PIPE, stderr=STDOUT)
+            game_title, '-mapping', '/home/pi/xbox.conf', '-1080', '-60fps'], stdout=PIPE, stderr=STDOUT)
 
         for line in iter(launch_game.stdout.readline, b''):
             yield line.rstrip() + '<br/>\n'
