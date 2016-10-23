@@ -111,7 +111,7 @@ def alexa_ask_game():
 
 
 @ask.intent('AnswerGameIntent', mapping={'game_title': 'Game'})
-def alexa_launch_game(game_title);
+def alexa_launch_game(game_title):
     card_title = render_template('card_title')
     if game_title is not None:
       session.attributes[GAME_KEY] = game_title
