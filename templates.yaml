@@ -1,4 +1,4 @@
-welcome: Welcome to Moonlighty Game Stream. What is the name of the game you want to launch?
+welcome: Welcome to Moonlighter Game Stream. Which game would you like to launch?
 
 welcome_reprompt: What is the name of the game you want to launch? You can say Steam for example
 
@@ -6,4 +6,4 @@ game_list: Which of these games will it be? {{ games | join(", ") }}
 
 known_game: Launching {{ game }}
 
-card_title: Moonlighty
+card_title: Moonlighter

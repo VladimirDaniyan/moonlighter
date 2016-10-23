@@ -26,7 +26,7 @@ class GunicornServer(Command):
         from gunicorn.app.wsgiapp import WSGIApplication
 
         app = WSGIApplication()
-        app.app_uri = 'moonlighty:app'
+        app.app_uri = 'moonlighter:app'
         return app.run()
 
 
