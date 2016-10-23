@@ -35,8 +35,6 @@ class GunicornServer(Command):
 app = Flask(__name__)
 ask = Ask(app, '/')
 
-GAME_KEY = 'GAME'
-
 manager = Manager(app)
 manager.add_command("runserver", Server(host='0.0.0.0'))
 manager.add_command("gunicorn", GunicornServer())
@@ -117,7 +115,7 @@ def alexa_ask_game():
 def alexa_launch_game(game_title):
     card_title = render_template('card_title')
     if game_title is not None:
-      session.attributes[GAME_KEY] = game_title
+      session.attributes['games'] = game_title
       statement_msg = render_template('known_game', game=game_title)
       launch_game(game_title)
       return statement(statement_msg).simple_card(card_title, statement_msg)
