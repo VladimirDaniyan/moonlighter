@@ -1,7 +1,7 @@
 #!venv/bin/python
 from flask import Flask, render_template, Response, url_for
 from flask.ext.script import Manager, Server, Command, Option
-from flask_ask import Ask, render_template, statement, question
+from flask_ask import Ask, statement, question, session
 from subprocess import Popen, PIPE, STDOUT
 from jinja2 import Environment, FileSystemLoader
 import re
@@ -116,6 +116,7 @@ def alexa_launch_game(game_title):
     if game_title is not None:
       session.attributes[GAME_KEY] = game_title
       statement_msg = render_template('known_game', game=game_title)
+      launch_game(game_title)
       return statement(statement_msg).simple_card(card_title, statement_msg)
     else:
       question_msg = render_template('unknown_game')
