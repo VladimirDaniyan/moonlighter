@@ -1,4 +1,5 @@
 #!venv/bin/python
+
 from flask import Flask, render_template, Response, url_for
 from flask.ext.script import Manager, Server, Command, Option
 from flask_ask import Ask, statement, question, session
@@ -7,6 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 import re
 import time
 import sys
+
 
 # http://stackoverflow.com/questions/14566570/how-to-use-flask-script-and-gunicorn
 class GunicornServer(Command):
@@ -35,7 +37,6 @@ ask = Ask(app, '/')
 
 GAME_KEY = 'GAME'
 
-
 manager = Manager(app)
 manager.add_command("runserver", Server(host='0.0.0.0'))
 manager.add_command("gunicorn", GunicornServer())
@@ -44,6 +45,7 @@ manager.add_command("gunicorn", GunicornServer())
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 def moonlight_games():
     """Returns the list of game titles from the moonlight list action
@@ -70,6 +72,7 @@ def moonlight_games():
         return steam_games
     else:
         return Response(error, mimetype='text/html')
+
 
 @app.route('/games')
 def games():
@@ -105,8 +108,8 @@ def alexa_ask_game():
     """Return the first three games in the list"""
     card_title = render_template('card_title')
     game_list = moonlight_games()
-    game_list_msg = render_template('game_list', games=game_list[:3])
-    session.attributes['games'] = game_list[:3]
+    game_list_msg = render_template('game_list', games=game_list[:5])
+    session.attributes['games'] = game_list[:5]
     return question(game_list_msg).simple_card(card_title, game_list_msg)
 
 
