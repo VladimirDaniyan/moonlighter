@@ -1,0 +1,8 @@
+AskGameIntent which game would you like to play
+AskGameIntent which game
+AskGameIntent what game
+AnswerGameIntent play {Game}
+AnswerGameIntent I want to play {Game}
+AnswerGameIntent launch {Game}
+AnswerGameIntent start {Game}
+AnswerGameIntent open {Game}

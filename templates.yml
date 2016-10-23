@@ -1,0 +1,9 @@
+welcome: Welcome to Moonlighty. What is the name of the game you want to launch?
+
+welcome_reprompt: What is the name of the game you want to launch? You can say Steam for example
+
+game_list: Which of these games will it be? {{ games | join(", ") }}
+
+known_game: Launching {{ game }}
+
+card_title: Moonlighty

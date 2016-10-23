@@ -1,0 +1,13 @@
+{
+  "intents": [
+    {
+      "intent": "AskGameIntent",
+      "slots": [
+        {
+          "name": "Game",
+          "type": "LIST_OF_GAMES"
+        }
+      ]
+    }
+  ]
+}
