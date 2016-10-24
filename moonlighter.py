@@ -85,8 +85,10 @@ def launch_game(game_title):
         launch_game = Popen(['sudo', '-u', 'pi', 'moonlight', 'stream', '-app',
             game_title, '-mapping', '/home/pi/xbox.conf', '-1080', '-60fps'], stdout=PIPE, stderr=STDOUT)
 
-        for line in iter(launch_game.stdout.readline, b''):
-            yield line.rstrip() + '<br/>\n'
+        if launch_game.returncode < 0:
+            return "Launched {}".format(game_title)
+        else:
+            return launch_game.returncode
 
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('launched_game.html')
@@ -95,6 +97,7 @@ def launch_game(game_title):
 
 @ask.launch
 def alexa_welcome():
+    """Welcome message when launching the Alexa Skill"""
     card_title = render_template('card_title')
     welcome_msg = render_template('welcome')
     welcome_reprompt = render_template('welcome_reprompt')
@@ -103,7 +106,7 @@ def alexa_welcome():
 
 @ask.intent('AskGameIntent')
 def alexa_ask_game():
-    """Return the first three games in the list"""
+    """Return the five three games in the list"""
     card_title = render_template('card_title')
     game_list = moonlight_games()
     game_list_msg = render_template('game_list', games=game_list[:5])
@@ -113,11 +116,11 @@ def alexa_ask_game():
 
 @ask.intent('AnswerGameIntent', mapping={'game_title': 'Game'})
 def alexa_launch_game(game_title):
+    """Launch the desired GameStream App"""
     card_title = render_template('card_title')
     if game_title is not None:
-      session.attributes['games'] = game_title
-      statement_msg = render_template('known_game', game=game_title)
-      launch_game(game_title)
+      statement_msg = render_template('known_game', game=game_title.title())
+      launch_game(game_title.title())
       return statement(statement_msg).simple_card(card_title, statement_msg)
     else:
       question_msg = render_template('unknown_game')
